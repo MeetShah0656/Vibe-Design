@@ -1,21 +1,14 @@
 const paletteEl = document.getElementById("palette");
 const btn = document.getElementById("generate");
+const shareBtn = document.getElementById("share");
 
-// ---------------- helpers ----------------
+let lastChallengeText = "";
 
+/* ---------------- helpers ---------------- */
 
-
-const fontPool = [
-  { name: "Inter", url: "https://fonts.google.com/specimen/Inter" },
-  { name: "Poppins", url: "https://fonts.google.com/specimen/Poppins" },
-  { name: "DM Serif Display", url: "https://fonts.google.com/specimen/DM+Serif+Display" },
-  { name: "Playfair Display", url: "https://fonts.google.com/specimen/Playfair+Display" },
-  { name: "Space Grotesk", url: "https://fonts.google.com/specimen/Space+Grotesk" },
-  { name: "Archivo", url: "https://fonts.google.com/specimen/Archivo" },
-  { name: "Bebas Neue", url: "https://fonts.google.com/specimen/Bebas+Neue" },
-  { name: "Manrope", url: "https://fonts.google.com/specimen/Manrope" }
-];
-
+function random(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 function hslToHex(h, s, l) {
   s /= 100;
@@ -30,178 +23,193 @@ function hslToHex(h, s, l) {
   const g = Math.round(255 * f(8));
   const b = Math.round(255 * f(4));
 
-  return (
-    "#" +
-    [r, g, b]
-      .map(x => x.toString(16).padStart(2, "0"))
-      .join("")
-  );
+  return "#" + [r, g, b].map(x =>
+    x.toString(16).padStart(2, "0")
+  ).join("");
 }
 
-function random(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-// ---------------- palette generator ----------------
+/* ---------------- palette ---------------- */
 
 function generatePalette() {
 
   const baseHue = random(0, 360);
-  const baseSat = random(55, 75);
-  const baseLight = random(45, 60);
+  const sat = random(55, 75);
+  const light = random(45, 60);
 
   const rules = ["analogous", "complementary", "triadic", "split"];
   const rule = rules[random(0, rules.length - 1)];
 
   let hues = [];
 
-  if (rule === "analogous") {
+  if (rule === "analogous")
     hues = [baseHue, baseHue + 20, baseHue - 20, baseHue + 40];
-  }
 
-  if (rule === "complementary") {
+  if (rule === "complementary")
     hues = [baseHue, baseHue + 180, baseHue, baseHue + 180];
-  }
 
-  if (rule === "triadic") {
+  if (rule === "triadic")
     hues = [baseHue, baseHue + 120, baseHue + 240, baseHue];
-  }
 
-  if (rule === "split") {
+  if (rule === "split")
     hues = [baseHue, baseHue + 150, baseHue + 210, baseHue];
-  }
 
-  const palette = hues.map((h, i) => {
-    const light = i === 0 ? baseLight : random(30, 75);
-    return hslToHex((h + 360) % 360, baseSat, light);
-  });
-
-  return palette.slice(0, 4);
+  return hues.map((h, i) =>
+    hslToHex((h + 360) % 360, sat, i === 0 ? light : random(30, 75))
+  ).slice(0, 4);
 }
-
-// ---------------- reddit trend ----------------
-
-async function fetchMemeTrend() {
-
-  const res = await fetch(
-    "https://meme-api.com/gimme/wholesomememes"
-  );
-
-  const data = await res.json();
-
-  return data.title;
-}
-
-
-
-
-
-// ---------------- UI ----------------
 
 function renderPalette(colors) {
   paletteEl.innerHTML = "";
 
   colors.forEach(c => {
-    const div = document.createElement("div");
-    div.className = "color";
-    div.style.background = c;
-    div.innerText = c;
-
-    div.onclick = () => navigator.clipboard.writeText(c);
-
-    paletteEl.appendChild(div);
+    const d = document.createElement("div");
+    d.className = "color";
+    d.style.background = c;
+    d.textContent = c;
+    d.onclick = () => navigator.clipboard.writeText(c);
+    paletteEl.appendChild(d);
   });
 }
 
+/* ---------------- fonts ---------------- */
+
+const fontPool = [
+  { name: "Inter", url: "https://fonts.google.com/specimen/Inter" },
+  { name: "Poppins", url: "https://fonts.google.com/specimen/Poppins" },
+  { name: "DM Serif Display", url: "https://fonts.google.com/specimen/DM+Serif+Display" },
+  { name: "Playfair Display", url: "https://fonts.google.com/specimen/Playfair+Display" },
+  { name: "Space Grotesk", url: "https://fonts.google.com/specimen/Space+Grotesk" },
+  { name: "Bebas Neue", url: "https://fonts.google.com/specimen/Bebas+Neue" },
+  { name: "Manrope", url: "https://fonts.google.com/specimen/Manrope" },
+  { name: "Archivo", url: "https://fonts.google.com/specimen/Archivo" }
+];
+
+function pickFonts() {
+  let a = fontPool[random(0, fontPool.length - 1)];
+  let b = fontPool[random(0, fontPool.length - 1)];
+
+  while (a.name === b.name) {
+    b = fontPool[random(0, fontPool.length - 1)];
+  }
+
+  return { headline: a, body: b };
+}
+
+/* ---------------- trend (meme) ---------------- */
+
+async function fetchMemeTrend() {
+
+  const res = await fetch("https://meme-api.com/gimme/wholesomememes");
+  const data = await res.json();
+
+  return data.title;
+}
+
+/* ---------------- main ---------------- */
+
 btn.addEventListener("click", async () => {
 
-    const mode = document.getElementById("mode").value;
+  const mode = document.getElementById("mode").value;
 
+  // palette
+  let palette = generatePalette();
 
-    let palette = generatePalette();
+  if (mode === "strict") palette = palette.slice(0, 2);
+  if (mode === "type") palette = [];
 
-    if (mode === "strict") palette = palette.slice(0, 2);
-    if (mode === "type") palette = [];
+  if (palette.length) {
+    renderPalette(palette);
+  } else {
+    paletteEl.innerHTML = "No colors. Focus on typography only.";
+  }
 
-    if (palette.length > 0) {
-  renderPalette(palette);
-} else {
-  document.getElementById("palette").innerHTML = "No colors. Focus on typography only.";
-}
+  // trend
+  let trend = "A creative moment";
 
-
-  let trend = "Create a poster inspired by today’s trend";
-
-try {
-  trend = await fetchMemeTrend();
-  console.log("TREND OK:", trend);
-} catch (e) {
-  console.error("TREND ERROR:", e);
-}
-
-
+  try {
+    trend = await fetchMemeTrend();
+  } catch (e) {
+    console.error(e);
+  }
 
   document.getElementById("trend").innerText = trend;
 
+  // fonts
   const fonts = pickFonts();
 
   if (mode === "strict") {
-  document.getElementById("fonts").innerHTML = `
-  <strong>Font:</strong>
-  <a href="${fonts.headline.url}" target="_blank">${fonts.headline.name}</a>
-  `;
-}
 
+    document.getElementById("fonts").innerHTML =
+      `<strong>Font:</strong>
+       <a href="${fonts.headline.url}" target="_blank">
+       ${fonts.headline.name}</a>`;
 
-document.getElementById("fonts").innerHTML = `
-<strong>Headline:</strong>
-<a href="${fonts.headline.url}" target="_blank">${fonts.headline.name}</a><br>
-<strong>Body:</strong>
-<a href="${fonts.body.url}" target="_blank">${fonts.body.name}</a>
-`;
+  } else {
 
+    document.getElementById("fonts").innerHTML =
+      `<strong>Headline:</strong>
+       <a href="${fonts.headline.url}" target="_blank">
+       ${fonts.headline.name}</a><br>
+       <strong>Body:</strong>
+       <a href="${fonts.body.url}" target="_blank">
+       ${fonts.body.name}</a>`;
+  }
 
-const formats = [
-  "Instagram square post (1080×1080)",
-  "Instagram portrait post (1080×1350)",
-  "Story format (1080×1920)",
-  "Typography poster (A4)"
-];
+  // challenge text
+  const formats = [
+    "Instagram square post (1080×1080)",
+    "Instagram portrait post (1080×1350)",
+    "Story format (1080×1920)",
+    "A4 typography poster"
+  ];
 
-const moods = [
-  "playful",
-  "bold",
-  "minimal",
-  "emotional",
-  "futuristic",
-  "editorial"
-];
+  const moods = [
+    "playful",
+    "bold",
+    "minimal",
+    "emotional",
+    "futuristic",
+    "editorial"
+  ];
 
-const format = formats[Math.floor(Math.random() * formats.length)];
-const mood = moods[Math.floor(Math.random() * moods.length)];
+  const format = formats[random(0, formats.length - 1)];
+  const mood = moods[random(0, moods.length - 1)];
 
-document.getElementById("challenge").innerText =
-`Design a ${mood} visual artwork for ${format} inspired by the idea:
+  lastChallengeText =
+`Design a ${mood} artwork for ${format} inspired by this idea:
 
 "${trend}"
 
 Do NOT use the sentence literally.
-Translate the emotion into composition, color and typography.
-Use only the given palette.`;
+Translate the emotion into layout, color and typography.
 
-function pickFonts() {
+${mode === "type" ? "Use only typography. No colors." : "Use only the given palette."}
+${mode === "strict" ? "Use only one font." : ""}`;
 
-  let first = fontPool[Math.floor(Math.random() * fontPool.length)];
-  let second = fontPool[Math.floor(Math.random() * fontPool.length)];
+  document.getElementById("challenge").innerText = lastChallengeText;
+});
 
-  while (second.name === first.name) {
-    second = fontPool[Math.floor(Math.random() * fontPool.length)];
+/* ---------------- share ---------------- */
+
+shareBtn.addEventListener("click", async () => {
+
+  if (!lastChallengeText) {
+    alert("Generate a challenge first.");
+    return;
   }
 
-  return {
-    headline: first,
-    body: second
-  };
-}
+  const text =
+`🎨 Vibe Design Challenge
 
+${lastChallengeText}
+
+Try it:
+https://meetshah0656.github.io/Vibe-Design/`;
+
+  if (navigator.share) {
+    await navigator.share({ text });
+  } else {
+    await navigator.clipboard.writeText(text);
+    alert("Challenge copied to clipboard.");
+  }
 });

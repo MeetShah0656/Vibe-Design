@@ -1,71 +1,84 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Vibe Design Challenge</title>
+<meta charset="UTF-8">
+<title>Vibe Design Challenge</title>
 
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      padding: 30px;
-      background: #111;
-      color: white;
-    }
+<style>
+body{
+  font-family: system-ui, sans-serif;
+  background:#111;
+  color:#fff;
+  padding:24px;
+  max-width:720px;
+  margin:auto;
+}
 
-    button {
-      padding: 10px 18px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      margin-bottom: 20px;
-    }
+button,select{
+  padding:8px 14px;
+  border-radius:6px;
+  border:none;
+  margin-right:8px;
+  cursor:pointer;
+}
 
-    .palette {
-      display: flex;
-      gap: 10px;
-      margin: 15px 0;
-    }
+.palette{
+  display:flex;
+  gap:10px;
+  margin:10px 0 20px;
+}
 
-    .color {
-      width: 80px;
-      height: 80px;
-      border-radius: 8px;
-      display: flex;
-      align-items: end;
-      justify-content: center;
-      font-size: 11px;
-      padding-bottom: 6px;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,.4);
-    }
-  </style>
+.color{
+  width:70px;
+  height:70px;
+  border-radius:8px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  font-size:10px;
+  padding-bottom:5px;
+  cursor:pointer;
+}
+
+a{color:#8ab4ff}
+.section{margin-top:18px}
+</style>
 </head>
+
 <body>
 
-  <h2>Vibe Design Challenge Generator</h2>
+<h2>Vibe Design Challenge Generator</h2>
 
-  <button id="generate">Generate challenge</button>
-  <select id="mode">
+<button id="generate">Generate challenge</button>
+
+<select id="mode">
   <option value="free">Free mode</option>
   <option value="strict">Strict mode</option>
   <option value="type">Typography only</option>
 </select>
 
+<button id="share">Share this challenge</button>
 
+<div class="section">
   <h3>Color palette</h3>
-  <div class="palette" id="palette"></div>
+  <div id="palette" class="palette"></div>
+</div>
 
+<div class="section">
   <h3>Trend inspiration</h3>
   <div id="trend">—</div>
+</div>
 
+<div class="section">
   <h3>Fonts</h3>
-<div id="fonts">—</div>
+  <div id="fonts">—</div>
+</div>
 
-
+<div class="section">
   <h3>Design challenge</h3>
-  <div id="challenge">—</div>
+  <pre id="challenge" style="white-space:pre-wrap;">—</pre>
+</div>
 
-  <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
