@@ -70,7 +70,7 @@ function generatePalette() {
 async function fetchMemeTrend() {
 
   const res = await fetch(
-    "https://www.reddit.com/r/memes/hot.json?limit=25"
+    "https://cors.isomorphic-git.org/https://www.reddit.com/r/memes/hot.json?limit=25"
   );
 
   const data = await res.json();
