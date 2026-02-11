@@ -1,8 +1,10 @@
 const paletteEl = document.getElementById("palette");
 const btn = document.getElementById("generate");
 const shareBtn = document.getElementById("share");
+const downloadBtn = document.getElementById("download");
 
 let lastChallengeText = "";
+let lastPalette = [];
 
 /* ---------------- helpers ---------------- */
 
@@ -95,13 +97,11 @@ function pickFonts() {
   return { headline: a, body: b };
 }
 
-/* ---------------- trend (meme) ---------------- */
+/* ---------------- trend ---------------- */
 
 async function fetchMemeTrend() {
-
   const res = await fetch("https://meme-api.com/gimme/wholesomememes");
   const data = await res.json();
-
   return data.title;
 }
 
@@ -110,12 +110,15 @@ async function fetchMemeTrend() {
 btn.addEventListener("click", async () => {
 
   const mode = document.getElementById("mode").value;
+  const context = document.getElementById("context").value;
 
-  // palette
+
   let palette = generatePalette();
 
   if (mode === "strict") palette = palette.slice(0, 2);
   if (mode === "type") palette = [];
+
+  lastPalette = palette;
 
   if (palette.length) {
     renderPalette(palette);
@@ -123,7 +126,6 @@ btn.addEventListener("click", async () => {
     paletteEl.innerHTML = "No colors. Focus on typography only.";
   }
 
-  // trend
   let trend = "A creative moment";
 
   try {
@@ -134,18 +136,14 @@ btn.addEventListener("click", async () => {
 
   document.getElementById("trend").innerText = trend;
 
-  // fonts
   const fonts = pickFonts();
 
   if (mode === "strict") {
-
     document.getElementById("fonts").innerHTML =
       `<strong>Font:</strong>
        <a href="${fonts.headline.url}" target="_blank">
        ${fonts.headline.name}</a>`;
-
   } else {
-
     document.getElementById("fonts").innerHTML =
       `<strong>Headline:</strong>
        <a href="${fonts.headline.url}" target="_blank">
@@ -155,7 +153,6 @@ btn.addEventListener("click", async () => {
        ${fonts.body.name}</a>`;
   }
 
-  // challenge text
   const formats = [
     "Instagram square post (1080×1080)",
     "Instagram portrait post (1080×1350)",
@@ -175,8 +172,15 @@ btn.addEventListener("click", async () => {
   const format = formats[random(0, formats.length - 1)];
   const mood = moods[random(0, moods.length - 1)];
 
+  let contextLine = "Design a visual artwork";
+
+    if (context === "brand") contextLine = "Design a brand identity visual";
+    if (context === "social") contextLine = "Design a social media creative";
+    if (context === "motion") contextLine = "Design a motion / reel cover concept";
+    
+
   lastChallengeText =
-`Design a ${mood} artwork for ${format} inspired by this idea:
+  `${contextLine} in a ${mood} style for ${format} inspired by this idea:
 
 "${trend}"
 
@@ -213,3 +217,80 @@ https://meetshah0656.github.io/Vibe-Design/`;
     alert("Challenge copied to clipboard.");
   }
 });
+
+/* ---------------- download image ---------------- */
+
+downloadBtn.addEventListener("click", downloadBriefImage);
+
+function downloadBriefImage() {
+
+  if (!lastChallengeText) {
+    alert("Generate a challenge first.");
+    return;
+  }
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = 1080;
+  canvas.height = 1350;
+
+  ctx.fillStyle = "#111";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 48px sans-serif";
+  ctx.fillText("Vibe Design Challenge", 60, 80);
+
+  // palette squares
+  let px = 60;
+  let py = 110;
+  const size = 60;
+
+  if (lastPalette && lastPalette.length) {
+    lastPalette.forEach(color => {
+      ctx.fillStyle = color;
+      ctx.fillRect(px, py, size, size);
+      px += size + 16;
+    });
+  }
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "28px sans-serif";
+
+  let y = 220;
+  const lines = lastChallengeText.split("\n");
+
+  lines.forEach(line => {
+    y = wrapText(ctx, line, 60, y, 960, 36) + 20;
+    y += 12;
+  });
+
+  const link = document.createElement("a");
+  link.download = "vibe-design-challenge.png";
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+}
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+
+  const words = text.split(" ");
+  let line = "";
+
+  for (let i = 0; i < words.length; i++) {
+
+    const testLine = line + words[i] + " ";
+    const metrics = ctx.measureText(testLine);
+
+    if (metrics.width > maxWidth && i > 0) {
+      ctx.fillText(line, x, y);
+      line = words[i] + " ";
+      y += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+
+  ctx.fillText(line, x, y);
+  return y;
+}
