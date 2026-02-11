@@ -70,19 +70,26 @@ function generatePalette() {
 async function fetchMemeTrend() {
 
   const res = await fetch(
-    "https://cors.isomorphic-git.org/https://www.reddit.com/r/memes/hot.json?limit=25"
+    "https://api.allorigins.win/raw?url=https://www.reddit.com/r/wholesomememes/hot.json?limit=30"
   );
 
   const data = await res.json();
 
   const posts = data.data.children
     .map(p => p.data)
-    .filter(p => !p.over_18 && p.title && p.title.length < 120);
+    .filter(p =>
+      p.title &&
+      p.title.length < 100 &&
+      !p.over_18
+    );
 
   const pick = posts[Math.floor(Math.random() * posts.length)];
 
   return pick.title;
 }
+
+
+
 
 // ---------------- UI ----------------
 
@@ -106,11 +113,25 @@ btn.addEventListener("click", async () => {
   const palette = generatePalette();
   renderPalette(palette);
 
-  const trend = await fetchMemeTrend();
+  let trend = "Create a poster inspired by today’s trend";
+
+try {
+  trend = await fetchMemeTrend();
+  console.log("TREND OK:", trend);
+} catch (e) {
+  console.error("TREND ERROR:", e);
+}
+
+
 
   document.getElementById("trend").innerText = trend;
 
   document.getElementById("challenge").innerText =
-    `Create an Instagram artwork using the line "${trend}" as the main headline.
-Use only the given color palette and focus on expressive typography.`;
+  `Design a visual poster inspired by the idea:
+
+"${trend}"
+
+Do NOT use this sentence literally.
+Translate the emotion or situation into color, layout and typography.
+Use only the given palette.`;
 });
