@@ -70,23 +70,14 @@ function generatePalette() {
 async function fetchMemeTrend() {
 
   const res = await fetch(
-    "https://api.allorigins.win/raw?url=https://www.reddit.com/r/wholesomememes/hot.json?limit=30"
+    "https://meme-api.com/gimme/wholesomememes"
   );
 
   const data = await res.json();
 
-  const posts = data.data.children
-    .map(p => p.data)
-    .filter(p =>
-      p.title &&
-      p.title.length < 100 &&
-      !p.over_18
-    );
-
-  const pick = posts[Math.floor(Math.random() * posts.length)];
-
-  return pick.title;
+  return data.title;
 }
+
 
 
 
