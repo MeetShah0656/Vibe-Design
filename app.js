@@ -126,13 +126,15 @@ btn.addEventListener("click", async () => {
     paletteEl.innerHTML = "No colors. Focus on typography only.";
   }
 
-  let trend = "A creative moment";
+  let trend = "A creative concept";
 
-  try {
-    trend = await fetchMemeTrend();
-  } catch (e) {
-    console.error(e);
-  }
+try {
+  const raw = await fetchWikiIdea();
+  trend = transformToDesignIdea(raw);
+} catch (e) {
+  console.error(e);
+}
+
 
   document.getElementById("trend").innerText = trend;
 
@@ -293,4 +295,81 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
 
   ctx.fillText(line, x, y);
   return y;
+}
+
+const ideaParts = {
+  emotions: [
+    "quiet", "overwhelmed", "hopeful", "lost", "curious",
+    "peaceful", "restless", "nostalgic", "free"
+  ],
+  situations: [
+    "after a long day",
+    "before something changes",
+    "in the middle of chaos",
+    "when no one is watching",
+    "just before sunrise"
+  ],
+  twists: [
+    "in a loud world",
+    "without using words",
+    "told through shapes",
+    "expressed only by color",
+    "without any humans"
+  ]
+};
+
+function generateIdea() {
+
+  const e = ideaParts.emotions[random(0, ideaParts.emotions.length - 1)];
+  const s = ideaParts.situations[random(0, ideaParts.situations.length - 1)];
+  const t = ideaParts.twists[random(0, ideaParts.twists.length - 1)];
+
+  return `${e} ${s} ${t}`;
+}
+
+
+function getUniqueIdea() {
+
+  let history = JSON.parse(localStorage.getItem("ideaHistory")) || [];
+  let idea = generateIdea();
+  let attempts = 0;
+
+  while (history.includes(idea) && attempts < 10) {
+    idea = generateIdea();
+    attempts++;
+  }
+
+  history.unshift(idea);
+  history = history.slice(0, 30);
+
+  localStorage.setItem("ideaHistory", JSON.stringify(history));
+
+  return idea;
+}
+
+
+async function fetchWikiIdea() {
+  const res = await fetch(
+    "https://en.wikipedia.org/api/rest_v1/page/random/summary"
+  );
+  const data = await res.json();
+  return data.extract;
+}
+
+
+function transformToDesignIdea(text) {
+
+  const lenses = [
+    "Translate this concept into a visual metaphor",
+    "Design an abstract poster inspired by this idea",
+    "Express this concept using only shapes and color",
+    "Turn this idea into a modern brand visual"
+  ];
+
+  const lens = lenses[random(0, lenses.length - 1)];
+
+  // Take first meaningful sentence only
+  const short = text.split(".")[0];
+
+  return `${lens}: "${short}"`;
 }
