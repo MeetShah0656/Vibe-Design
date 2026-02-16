@@ -6,6 +6,7 @@ const paletteEl = document.getElementById("palette");
 const btn = document.getElementById("generate");
 const shareBtn = document.getElementById("share");
 const downloadBtn = document.getElementById("download");
+const dailyHeaderEl = document.getElementById("dailyHeader");
 
 /* =====================================================
    SECTION: GLOBAL STATE
@@ -14,10 +15,28 @@ const downloadBtn = document.getElementById("download");
 let lastChallengeText = "";
 let lastPalette = [];
 let dailyRand = null;
+let forceDailyFromURL = false;
 
 /* =====================================================
    SECTION: RANDOM HELPERS (DAILY MODE AWARE)
 ===================================================== */
+
+// ===== SECTION: URL & DATE HELPERS =====
+
+function shouldAutoGenerate() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("daily") === "1";
+}
+
+function isDailyFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("daily") === "1";
+}
+
+function formatTodayLabel() {
+  const d = new Date();
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
 
 function seededRandom(seed) {
   let h = 2166136261 >>> 0;
@@ -184,12 +203,27 @@ async function getDailyIdea() {
 ===================================================== */
 
 btn.addEventListener("click", async () => {
+  // ----- DAILY MODE (URL + CHECKBOX SYNC) -----
+  forceDailyFromURL = isDailyFromURL();
+
+  const dailyCheckbox = document.getElementById("dailyMode");
+  if (forceDailyFromURL) {
+    dailyCheckbox.checked = true;
+  }
+
   // ----- DAILY MODE SETUP -----
-  const isDaily = document.getElementById("dailyMode").checked;
+  const isDaily = dailyCheckbox.checked;
   dailyRand = isDaily ? seededRandom(getTodaySeed()) : null;
 
   const mode = document.getElementById("mode").value;
   const context = document.getElementById("context").value;
+
+  // ----- DAILY HEADER -----
+  if (isDaily) {
+    dailyHeaderEl.textContent = `Today’s Challenge · ${formatTodayLabel()}`;
+  } else {
+    dailyHeaderEl.textContent = "";
+  }
 
   // ----- PALETTE -----
   let palette = generatePalette();
@@ -238,6 +272,40 @@ Translate the emotion into layout, color and typography.`;
 
   document.getElementById("challenge").innerText = lastChallengeText;
 });
+
+/* =====================================================
+   SECTION: SHARE CHALLENGE
+===================================================== */
+
+shareBtn.addEventListener("click", async () => {
+
+  if (!lastChallengeText) {
+    alert("Generate a challenge first.");
+    return;
+  }
+
+  const isDaily = document.getElementById("dailyMode").checked;
+
+  const shareURL = isDaily
+    ? "https://meetshah0656.github.io/Vibe-Design/?daily=1"
+    : "https://meetshah0656.github.io/Vibe-Design/";
+
+  const shareText =
+`🎨 Vibe Design Challenge
+
+${lastChallengeText}
+
+Try it here:
+${shareURL}`;
+
+  if (navigator.share) {
+    await navigator.share({ text: shareText });
+  } else {
+    await navigator.clipboard.writeText(shareText);
+    alert("Challenge copied to clipboard.");
+  }
+});
+
 
 /* =====================================================
    SECTION: DOWNLOAD IMAGE
@@ -290,3 +358,19 @@ function wrapText(ctx, text, x, y, max, line) {
   ctx.fillText(l, x, y);
   return y;
 }
+
+/* =====================================================
+   SECTION: AUTO-GENERATE ON LOAD
+===================================================== */
+
+window.addEventListener("load", () => {
+  if (shouldAutoGenerate()) {
+    // ensure daily mode is ON
+    const dailyCheckbox = document.getElementById("dailyMode");
+    if (dailyCheckbox) dailyCheckbox.checked = true;
+
+    // trigger generation
+    btn.click();
+  }
+});
+
