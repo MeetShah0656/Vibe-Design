@@ -16,6 +16,8 @@ let lastChallengeText = "";
 let lastPalette = [];
 let dailyRand = null;
 let forceDailyFromURL = false;
+let isDaily = false;
+
 
 /* =====================================================
    SECTION: RANDOM HELPERS (DAILY MODE AWARE)
@@ -156,6 +158,62 @@ function pickFonts() {
 /* =====================================================
    SECTION: IDEA ENGINE (WIKIPEDIA)
 ===================================================== */
+// ===== SECTION: HISTORY HELPERS =====
+function saveToHistory(dateKey, payload) {
+  const all = JSON.parse(localStorage.getItem("history")) || {};
+  all[dateKey] = payload;
+  localStorage.setItem("history", JSON.stringify(all));
+}
+
+function getHistory() {
+  return JSON.parse(localStorage.getItem("history")) || {};
+}
+
+function renderHistory() {
+  const el = document.getElementById("history");
+  const all = getHistory();
+  const dates = Object.keys(all).sort().reverse().slice(0, 7);
+
+  if (!dates.length) {
+    el.textContent = "No history yet.";
+    return;
+  }
+
+  el.innerHTML = dates
+    .map(
+      (d) =>
+        `<div style="cursor:pointer;opacity:.9" data-date="${d}">
+      ${d}
+     </div>`,
+    )
+    .join("");
+
+  dates.forEach((d) => {
+    el.querySelector(`[data-date="${d}"]`).onclick = () => {
+      loadFromHistory(d);
+    };
+  });
+}
+
+function loadFromHistory(dateKey) {
+  const item = getHistory()[dateKey];
+  if (!item) return;
+
+  lastChallengeText = item.challenge;
+  lastPalette = item.palette;
+
+  // rehydrate UI
+  document.getElementById("trend").innerText = item.trend;
+  document.getElementById("fonts").innerHTML = item.fontsHTML;
+  document.getElementById("challenge").innerText = item.challenge;
+
+  if (item.palette.length) {
+    renderPalette(item.palette);
+  } else {
+    document.getElementById("palette").innerHTML =
+      "No colors. Typography only.";
+  }
+}
 
 async function fetchWikiIdea() {
   const res = await fetch(
@@ -198,6 +256,63 @@ async function getDailyIdea() {
   return idea;
 }
 
+// ===== SECTION: HISTORY HELPERS =====
+function saveToHistory(dateKey, payload) {
+  const all = JSON.parse(localStorage.getItem("history")) || {};
+  all[dateKey] = payload;
+  localStorage.setItem("history", JSON.stringify(all));
+}
+
+function getHistory() {
+  return JSON.parse(localStorage.getItem("history")) || {};
+}
+
+function renderHistory() {
+  const el = document.getElementById("history");
+  const all = getHistory();
+  const dates = Object.keys(all).sort().reverse().slice(0, 7);
+
+  if (!dates.length) {
+    el.textContent = "No history yet.";
+    return;
+  }
+
+  el.innerHTML = dates
+    .map(
+      (d) =>
+        `<div style="cursor:pointer;opacity:.9" data-date="${d}">
+      ${d}
+     </div>`,
+    )
+    .join("");
+
+  dates.forEach((d) => {
+    el.querySelector(`[data-date="${d}"]`).onclick = () => {
+      loadFromHistory(d);
+    };
+  });
+}
+
+function loadFromHistory(dateKey) {
+  const item = getHistory()[dateKey];
+  if (!item) return;
+
+  lastChallengeText = item.challenge;
+  lastPalette = item.palette;
+
+  // rehydrate UI
+  document.getElementById("trend").innerText = item.trend;
+  document.getElementById("fonts").innerHTML = item.fontsHTML;
+  document.getElementById("challenge").innerText = item.challenge;
+
+  if (item.palette.length) {
+    renderPalette(item.palette);
+  } else {
+    document.getElementById("palette").innerHTML =
+      "No colors. Typography only.";
+  }
+}
+
 /* =====================================================
    SECTION: MAIN GENERATE HANDLER
 ===================================================== */
@@ -212,7 +327,7 @@ btn.addEventListener("click", async () => {
   }
 
   // ----- DAILY MODE SETUP -----
-  const isDaily = dailyCheckbox.checked;
+  isDaily = dailyCheckbox.checked;
   dailyRand = isDaily ? seededRandom(getTodaySeed()) : null;
 
   const mode = document.getElementById("mode").value;
@@ -273,12 +388,87 @@ Translate the emotion into layout, color and typography.`;
   document.getElementById("challenge").innerText = lastChallengeText;
 });
 
+// ----- SAVE DAILY HISTORY -----
+if (isDaily) {
+  console.log("Saving daily history");
+
+  const dateKey = getTodaySeed();
+  saveToHistory(dateKey, {
+    trend,
+    palette: lastPalette,
+    fontsHTML: document.getElementById("fonts").innerHTML,
+    challenge: lastChallengeText
+  });
+  renderHistory();
+} else {
+  console.log("NOT daily mode, history skipped");
+}
+
+
+
+
+// ===== SECTION: HISTORY HELPERS =====
+function saveToHistory(dateKey, payload) {
+  const all = JSON.parse(localStorage.getItem("history")) || {};
+  all[dateKey] = payload;
+  localStorage.setItem("history", JSON.stringify(all));
+}
+
+function getHistory() {
+  return JSON.parse(localStorage.getItem("history")) || {};
+}
+
+function renderHistory() {
+  const el = document.getElementById("history");
+  const all = getHistory();
+  const dates = Object.keys(all).sort().reverse().slice(0, 7);
+
+  if (!dates.length) {
+    el.textContent = "No history yet.";
+    return;
+  }
+
+  el.innerHTML = dates
+    .map(
+      (d) =>
+        `<div style="cursor:pointer;opacity:.9" data-date="${d}">
+      ${d}
+     </div>`,
+    )
+    .join("");
+
+  dates.forEach((d) => {
+    el.querySelector(`[data-date="${d}"]`).onclick = () => {
+      loadFromHistory(d);
+    };
+  });
+}
+
+function loadFromHistory(dateKey) {
+  const item = getHistory()[dateKey];
+  if (!item) return;
+
+  lastChallengeText = item.challenge;
+  lastPalette = item.palette;
+
+  // rehydrate UI
+  document.getElementById("trend").innerText = item.trend;
+  document.getElementById("fonts").innerHTML = item.fontsHTML;
+  document.getElementById("challenge").innerText = item.challenge;
+
+  if (item.palette.length) {
+    renderPalette(item.palette);
+  } else {
+    document.getElementById("palette").innerHTML =
+      "No colors. Typography only.";
+  }
+}
+
 /* =====================================================
    SECTION: SHARE CHALLENGE
 ===================================================== */
 
 shareBtn.addEventListener("click", async () => {
-
   if (!lastChallengeText) {
     alert("Generate a challenge first.");
     return;
@@ -290,8 +480,7 @@ shareBtn.addEventListener("click", async () => {
     ? "https://meetshah0656.github.io/Vibe-Design/?daily=1"
     : "https://meetshah0656.github.io/Vibe-Design/";
 
-  const shareText =
-`🎨 Vibe Design Challenge
+  const shareText = `🎨 Vibe Design Challenge
 
 ${lastChallengeText}
 
@@ -305,7 +494,6 @@ ${shareURL}`;
     alert("Challenge copied to clipboard.");
   }
 });
-
 
 /* =====================================================
    SECTION: DOWNLOAD IMAGE
@@ -369,8 +557,10 @@ window.addEventListener("load", () => {
     const dailyCheckbox = document.getElementById("dailyMode");
     if (dailyCheckbox) dailyCheckbox.checked = true;
 
+    renderHistory();
+
+
     // trigger generation
     btn.click();
   }
 });
-
