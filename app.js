@@ -1,39 +1,73 @@
+/* =====================================================
+   SECTION: DOM REFERENCES
+===================================================== */
+
 const paletteEl = document.getElementById("palette");
 const btn = document.getElementById("generate");
 const shareBtn = document.getElementById("share");
 const downloadBtn = document.getElementById("download");
 
+/* =====================================================
+   SECTION: GLOBAL STATE
+===================================================== */
+
 let lastChallengeText = "";
 let lastPalette = [];
+let dailyRand = null;
 
-/* ---------------- helpers ---------------- */
+/* =====================================================
+   SECTION: RANDOM HELPERS (DAILY MODE AWARE)
+===================================================== */
+
+function seededRandom(seed) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return () => {
+    h += h << 13;
+    h ^= h >>> 7;
+    h += h << 3;
+    h ^= h >>> 17;
+    h += h << 5;
+    return (h >>> 0) / 4294967296;
+  };
+}
+
+function getTodaySeed() {
+  return new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+}
 
 function random(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  const r = dailyRand ? dailyRand() : Math.random();
+  return Math.floor(r * (max - min + 1)) + min;
 }
+
+/* =====================================================
+   SECTION: COLOR PALETTE ENGINE
+===================================================== */
 
 function hslToHex(h, s, l) {
   s /= 100;
   l /= 100;
-
-  const k = n => (n + h / 30) % 12;
+  const k = (n) => (n + h / 30) % 12;
   const a = s * Math.min(l, 1 - l);
-  const f = n =>
+  const f = (n) =>
     l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-
-  const r = Math.round(255 * f(0));
-  const g = Math.round(255 * f(8));
-  const b = Math.round(255 * f(4));
-
-  return "#" + [r, g, b].map(x =>
-    x.toString(16).padStart(2, "0")
-  ).join("");
+  return (
+    "#" +
+    [f(0), f(8), f(4)]
+      .map((x) =>
+        Math.round(255 * x)
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")
+  );
 }
 
-/* ---------------- palette ---------------- */
-
 function generatePalette() {
-
   const baseHue = random(0, 360);
   const sat = random(55, 75);
   const light = random(45, 60);
@@ -42,28 +76,24 @@ function generatePalette() {
   const rule = rules[random(0, rules.length - 1)];
 
   let hues = [];
-
   if (rule === "analogous")
     hues = [baseHue, baseHue + 20, baseHue - 20, baseHue + 40];
-
   if (rule === "complementary")
     hues = [baseHue, baseHue + 180, baseHue, baseHue + 180];
-
   if (rule === "triadic")
     hues = [baseHue, baseHue + 120, baseHue + 240, baseHue];
+  if (rule === "split") hues = [baseHue, baseHue + 150, baseHue + 210, baseHue];
 
-  if (rule === "split")
-    hues = [baseHue, baseHue + 150, baseHue + 210, baseHue];
-
-  return hues.map((h, i) =>
-    hslToHex((h + 360) % 360, sat, i === 0 ? light : random(30, 75))
-  ).slice(0, 4);
+  return hues
+    .map((h, i) =>
+      hslToHex((h + 360) % 360, sat, i === 0 ? light : random(30, 75)),
+    )
+    .slice(0, 4);
 }
 
 function renderPalette(colors) {
   paletteEl.innerHTML = "";
-
-  colors.forEach(c => {
+  colors.forEach((c) => {
     const d = document.createElement("div");
     d.className = "color";
     d.style.background = c;
@@ -73,358 +103,190 @@ function renderPalette(colors) {
   });
 }
 
-/* ---------------- fonts ---------------- */
+/* =====================================================
+   SECTION: FONT ENGINE
+===================================================== */
 
 const fontPool = [
   { name: "Inter", url: "https://fonts.google.com/specimen/Inter" },
   { name: "Poppins", url: "https://fonts.google.com/specimen/Poppins" },
-  { name: "DM Serif Display", url: "https://fonts.google.com/specimen/DM+Serif+Display" },
-  { name: "Playfair Display", url: "https://fonts.google.com/specimen/Playfair+Display" },
-  { name: "Space Grotesk", url: "https://fonts.google.com/specimen/Space+Grotesk" },
+  {
+    name: "DM Serif Display",
+    url: "https://fonts.google.com/specimen/DM+Serif+Display",
+  },
+  {
+    name: "Playfair Display",
+    url: "https://fonts.google.com/specimen/Playfair+Display",
+  },
+  {
+    name: "Space Grotesk",
+    url: "https://fonts.google.com/specimen/Space+Grotesk",
+  },
   { name: "Bebas Neue", url: "https://fonts.google.com/specimen/Bebas+Neue" },
   { name: "Manrope", url: "https://fonts.google.com/specimen/Manrope" },
-  { name: "Archivo", url: "https://fonts.google.com/specimen/Archivo" }
+  { name: "Archivo", url: "https://fonts.google.com/specimen/Archivo" },
 ];
 
 function pickFonts() {
   let a = fontPool[random(0, fontPool.length - 1)];
   let b = fontPool[random(0, fontPool.length - 1)];
-
-  while (a.name === b.name) {
-    b = fontPool[random(0, fontPool.length - 1)];
-  }
-
+  while (a.name === b.name) b = fontPool[random(0, fontPool.length - 1)];
   return { headline: a, body: b };
 }
 
-/* ---------------- trend ---------------- */
-
-async function fetchMemeTrend() {
-  const res = await fetch("https://meme-api.com/gimme/wholesomememes");
-  const data = await res.json();
-  return data.title;
-}
-
-// ---------- WIKIPEDIA IDEA ENGINE ----------
+/* =====================================================
+   SECTION: IDEA ENGINE (WIKIPEDIA)
+===================================================== */
 
 async function fetchWikiIdea() {
   const res = await fetch(
-    "https://en.wikipedia.org/api/rest_v1/page/random/summary"
+    "https://en.wikipedia.org/api/rest_v1/page/random/summary",
   );
   const data = await res.json();
   return data.extract;
 }
 
 function transformWikiToDesignIdea(text) {
-
   const lenses = [
     "Design a visual metaphor for",
     "Create an abstract poster inspired by",
     "Translate this concept into a brand visual:",
     "Express this idea using only shapes and color:",
-    "Turn this concept into a modern design system:"
+    "Turn this concept into a modern design system:",
   ];
-
   const lens = lenses[random(0, lenses.length - 1)];
-
-  // take only the first meaningful sentence
-  const short = text.split(".")[0];
-
-  return `${lens} "${short}"`;
+  return `${lens} "${text.split(".")[0]}"`;
 }
 
-async function getIdeaBySource(source) {
-  if (source === "wiki") {
-    const raw = await fetchWikiIdea();
-    return transformWikiToDesignIdea(raw);
+// ===== DAILY IDEA CACHE =====
+async function getDailyIdea() {
+  const today = getTodaySeed(); // YYYY-MM-DD
+  const key = `dailyIdea-${today}`;
+
+  // 1. If already generated today → reuse
+  const cached = localStorage.getItem(key);
+  if (cached) {
+    return cached;
   }
 
-  if (source === "meme") {
-    const res = await fetch("https://meme-api.com/gimme/wholesomememes");
-    const data = await res.json();
-    return `Design inspired by this moment: "${data.title}"`;
-  }
-
-  // hybrid
-  if (Math.random() < 0.5) {
-    const raw = await fetchWikiIdea();
-    return transformWikiToDesignIdea(raw);
-  } else {
-    const res = await fetch("https://meme-api.com/gimme/wholesomememes");
-    const data = await res.json();
-    return `Design inspired by this moment: "${data.title}"`;
-  }
-}
-
-
-
-/* ---------------- main ---------------- */
-
-btn.addEventListener("click", async () => {
-
-  const mode = document.getElementById("mode").value;
-  const context = document.getElementById("context").value;
-
-
-  let palette = generatePalette();
-
-  if (mode === "strict") palette = palette.slice(0, 2);
-  if (mode === "type") palette = [];
-
-  lastPalette = palette;
-
-  if (palette.length) {
-    renderPalette(palette);
-  } else {
-    paletteEl.innerHTML = "No colors. Focus on typography only.";
-  }
-
-  const ideaSource = document.getElementById("ideaSource").value;
-
-let trend = "A creative concept";
-try {
-  trend = await getIdeaBySource(ideaSource);
-} catch (e) {
-  console.error("Idea source failed:", e);
-}
-
-
-
-
-  document.getElementById("trend").innerText = trend;
-
-  const fonts = pickFonts();
-
-  if (mode === "strict") {
-    document.getElementById("fonts").innerHTML =
-      `<strong>Font:</strong>
-       <a href="${fonts.headline.url}" target="_blank">
-       ${fonts.headline.name}</a>`;
-  } else {
-    document.getElementById("fonts").innerHTML =
-      `<strong>Headline:</strong>
-       <a href="${fonts.headline.url}" target="_blank">
-       ${fonts.headline.name}</a><br>
-       <strong>Body:</strong>
-       <a href="${fonts.body.url}" target="_blank">
-       ${fonts.body.name}</a>`;
-  }
-
-  const formats = [
-    "Instagram square post (1080×1080)",
-    "Instagram portrait post (1080×1350)",
-    "Story format (1080×1920)",
-    "A4 typography poster"
-  ];
-
-  const moods = [
-    "playful",
-    "bold",
-    "minimal",
-    "emotional",
-    "futuristic",
-    "editorial"
-  ];
-
-  const format = formats[random(0, formats.length - 1)];
-  const mood = moods[random(0, moods.length - 1)];
-
-  let contextLine = "Design a visual artwork";
-
-    if (context === "brand") contextLine = "Design a brand identity visual";
-    if (context === "social") contextLine = "Design a social media creative";
-    if (context === "motion") contextLine = "Design a motion / reel cover concept";
-    
-
-  lastChallengeText =
-  `${contextLine} in a ${mood} style for ${format} inspired by this idea:
-
-"${trend}"
-
-Do NOT use the sentence literally.
-Translate the emotion into layout, color and typography.
-
-${mode === "type" ? "Use only typography. No colors." : "Use only the given palette."}
-${mode === "strict" ? "Use only one font." : ""}`;
-
-  document.getElementById("challenge").innerText = lastChallengeText;
-});
-
-/* ---------------- share ---------------- */
-
-shareBtn.addEventListener("click", async () => {
-
-  if (!lastChallengeText) {
-    alert("Generate a challenge first.");
-    return;
-  }
-
-  const text =
-`🎨 Vibe Design Challenge
-
-${lastChallengeText}
-
-Try it:
-https://meetshah0656.github.io/Vibe-Design/`;
-
-  if (navigator.share) {
-    await navigator.share({ text });
-  } else {
-    await navigator.clipboard.writeText(text);
-    alert("Challenge copied to clipboard.");
-  }
-});
-
-/* ---------------- download image ---------------- */
-
-downloadBtn.addEventListener("click", downloadBriefImage);
-
-function downloadBriefImage() {
-
-  if (!lastChallengeText) {
-    alert("Generate a challenge first.");
-    return;
-  }
-
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-
-  canvas.width = 1080;
-  canvas.height = 1350;
-
-  ctx.fillStyle = "#111";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 48px sans-serif";
-  ctx.fillText("Vibe Design Challenge", 60, 80);
-
-  // palette squares
-  let px = 60;
-  let py = 110;
-  const size = 60;
-
-  if (lastPalette && lastPalette.length) {
-    lastPalette.forEach(color => {
-      ctx.fillStyle = color;
-      ctx.fillRect(px, py, size, size);
-      px += size + 16;
-    });
-  }
-
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "28px sans-serif";
-
-  let y = 220;
-  const lines = lastChallengeText.split("\n");
-
-  lines.forEach(line => {
-    y = wrapText(ctx, line, 60, y, 960, 36) + 20;
-    y += 12;
-  });
-
-  const link = document.createElement("a");
-  link.download = "vibe-design-challenge.png";
-  link.href = canvas.toDataURL("image/png");
-  link.click();
-}
-
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-
-  const words = text.split(" ");
-  let line = "";
-
-  for (let i = 0; i < words.length; i++) {
-
-    const testLine = line + words[i] + " ";
-    const metrics = ctx.measureText(testLine);
-
-    if (metrics.width > maxWidth && i > 0) {
-      ctx.fillText(line, x, y);
-      line = words[i] + " ";
-      y += lineHeight;
-    } else {
-      line = testLine;
-    }
-  }
-
-  ctx.fillText(line, x, y);
-  return y;
-}
-
-const ideaParts = {
-  emotions: [
-    "quiet", "overwhelmed", "hopeful", "lost", "curious",
-    "peaceful", "restless", "nostalgic", "free"
-  ],
-  situations: [
-    "after a long day",
-    "before something changes",
-    "in the middle of chaos",
-    "when no one is watching",
-    "just before sunrise"
-  ],
-  twists: [
-    "in a loud world",
-    "without using words",
-    "told through shapes",
-    "expressed only by color",
-    "without any humans"
-  ]
-};
-
-function generateIdea() {
-
-  const e = ideaParts.emotions[random(0, ideaParts.emotions.length - 1)];
-  const s = ideaParts.situations[random(0, ideaParts.situations.length - 1)];
-  const t = ideaParts.twists[random(0, ideaParts.twists.length - 1)];
-
-  return `${e} ${s} ${t}`;
-}
-
-
-function getUniqueIdea() {
-
-  let history = JSON.parse(localStorage.getItem("ideaHistory")) || [];
-  let idea = generateIdea();
-  let attempts = 0;
-
-  while (history.includes(idea) && attempts < 10) {
-    idea = generateIdea();
-    attempts++;
-  }
-
-  history.unshift(idea);
-  history = history.slice(0, 30);
-
-  localStorage.setItem("ideaHistory", JSON.stringify(history));
+  // 2. Otherwise fetch once
+  const raw = await fetchWikiIdea();
+  const idea = transformWikiToDesignIdea(raw);
+
+  // 3. Store for the day
+  localStorage.setItem(key, idea);
 
   return idea;
 }
 
+/* =====================================================
+   SECTION: MAIN GENERATE HANDLER
+===================================================== */
 
-async function fetchWikiIdea() {
-  const res = await fetch(
-    "https://en.wikipedia.org/api/rest_v1/page/random/summary"
-  );
-  const data = await res.json();
-  return data.extract;
-}
+btn.addEventListener("click", async () => {
+  // ----- DAILY MODE SETUP -----
+  const isDaily = document.getElementById("dailyMode").checked;
+  dailyRand = isDaily ? seededRandom(getTodaySeed()) : null;
 
+  const mode = document.getElementById("mode").value;
+  const context = document.getElementById("context").value;
 
-function transformToDesignIdea(text) {
+  // ----- PALETTE -----
+  let palette = generatePalette();
+  if (mode === "strict") palette = palette.slice(0, 2);
+  if (mode === "type") palette = [];
+  lastPalette = palette;
 
-  const lenses = [
-    "Translate this concept into a visual metaphor",
-    "Design an abstract poster inspired by this idea",
-    "Express this concept using only shapes and color",
-    "Turn this idea into a modern brand visual"
-  ];
+  palette.length
+    ? renderPalette(palette)
+    : (paletteEl.innerHTML = "No colors. Typography only.");
 
-  const lens = lenses[random(0, lenses.length - 1)];
+  // ----- IDEA -----
+  let trend = "";
 
-  // Take first meaningful sentence only
-  const short = text.split(".")[0];
+  if (isDaily) {
+    trend = await getDailyIdea();
+  } else {
+    const rawIdea = await fetchWikiIdea();
+    trend = transformWikiToDesignIdea(rawIdea);
+  }
 
-  return `${lens}: "${short}"`;
+  document.getElementById("trend").innerText = trend;
+
+  // ----- FONTS -----
+  const fonts = pickFonts();
+  document.getElementById("fonts").innerHTML =
+    mode === "strict"
+      ? `<strong>Font:</strong> <a href="${fonts.headline.url}" target="_blank">${fonts.headline.name}</a>`
+      : `<strong>Headline:</strong> <a href="${fonts.headline.url}" target="_blank">${fonts.headline.name}</a><br>
+         <strong>Body:</strong> <a href="${fonts.body.url}" target="_blank">${fonts.body.name}</a>`;
+
+  // ----- CONTEXT LINE -----
+  let contextLine = "Design a visual artwork";
+  if (context === "brand") contextLine = "Design a brand identity visual";
+  if (context === "social") contextLine = "Design a social media creative";
+  if (context === "motion")
+    contextLine = "Design a motion / reel cover concept";
+
+  // ----- CHALLENGE TEXT -----
+  lastChallengeText = `${contextLine} in a ${["playful", "bold", "minimal", "emotional", "futuristic", "editorial"][random(0, 5)]} style inspired by:
+
+"${trend}"
+
+Do NOT use the sentence literally.
+Translate the emotion into layout, color and typography.`;
+
+  document.getElementById("challenge").innerText = lastChallengeText;
+});
+
+/* =====================================================
+   SECTION: DOWNLOAD IMAGE
+===================================================== */
+
+downloadBtn.addEventListener("click", () => {
+  if (!lastChallengeText) return alert("Generate first.");
+
+  const c = document.createElement("canvas");
+  const ctx = c.getContext("2d");
+  c.width = 1080;
+  c.height = 1350;
+
+  ctx.fillStyle = "#111";
+  ctx.fillRect(0, 0, 1080, 1350);
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 48px sans-serif";
+  ctx.fillText("Vibe Design Challenge", 60, 80);
+
+  let x = 60;
+  lastPalette.forEach((col) => {
+    ctx.fillStyle = col;
+    ctx.fillRect(x, 110, 60, 60);
+    x += 76;
+  });
+
+  ctx.font = "28px sans-serif";
+  let y = 220;
+  lastChallengeText.split("\n").forEach((l) => {
+    y = wrapText(ctx, l, 60, y, 960, 36) + 20;
+  });
+
+  const a = document.createElement("a");
+  a.download = "vibe-challenge.png";
+  a.href = c.toDataURL();
+  a.click();
+});
+
+function wrapText(ctx, text, x, y, max, line) {
+  let words = text.split(" "),
+    l = "";
+  for (let w of words) {
+    let t = l + w + " ";
+    if (ctx.measureText(t).width > max) {
+      ctx.fillText(l, x, y);
+      l = w + " ";
+      y += line;
+    } else l = t;
+  }
+  ctx.fillText(l, x, y);
+  return y;
 }

@@ -1,102 +1,146 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Vibe Design Challenge</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Vibe Design Challenge</title>
 
-<style>
-body{
-  font-family: system-ui, sans-serif;
-  background:#111;
-  color:#fff;
-  padding:24px;
-  max-width:720px;
-  margin:auto;
-}
+    <style>
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background: #111;
+        color: #fff;
+        max-width: 760px;
+        margin: auto;
+        padding: 24px;
+      }
 
-button,select{
-  padding:8px 14px;
-  border-radius:6px;
-  border:none;
-  margin-right:8px;
-  cursor:pointer;
-}
+      h2 {
+        margin-bottom: 8px;
+      }
+      h3 {
+        margin: 18px 0 6px;
+      }
 
-.palette{
-  display:flex;
-  gap:10px;
-  margin:10px 0 20px;
-}
+      button,
+      select,
+      label {
+        padding: 8px 14px;
+        border-radius: 6px;
+        border: none;
+        margin: 6px 6px 6px 0;
+        cursor: pointer;
+        font-size: 14px;
+      }
 
-.color{
-  width:70px;
-  height:70px;
-  border-radius:8px;
-  display:flex;
-  align-items:flex-end;
-  justify-content:center;
-  font-size:10px;
-  padding-bottom:5px;
-  cursor:pointer;
-}
+      select {
+        background: #1e1e1e;
+        color: #fff;
+      }
 
-a{color:#8ab4ff}
-.section{margin-top:18px}
-</style>
-</head>
+      button {
+        background: #fff;
+        color: #111;
+      }
 
-<body>
+      .palette {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
 
-<h2>Vibe Design Challenge Generator</h2>
+      .color {
+        width: 70px;
+        height: 70px;
+        border-radius: 8px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        font-size: 10px;
+        padding-bottom: 5px;
+        cursor: pointer;
+        color: #fff;
+      }
 
-<button id="generate">Generate challenge</button>
+      .section {
+        margin-top: 20px;
+      }
 
-<select id="mode">
-  <option value="free">Free mode</option>
-  <option value="strict">Strict mode</option>
-  <option value="type">Typography only</option>
-</select>
+      #challenge {
+        white-space: pre-wrap;
+        background: #1b1b1b;
+        padding: 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
 
-<select id="context">
-  <option value="poster">Poster design</option>
-  <option value="brand">Brand identity</option>
-  <option value="social">Social media creative</option>
-  <option value="motion">Motion / reel cover</option>
-</select>
+      a {
+        color: #8ab4ff;
+        text-decoration: none;
+      }
 
-<select id="ideaSource">
-  <option value="wiki">Conceptual (Wikipedia)</option>
-  <option value="meme">Trending (Memes)</option>
-  <option value="hybrid">Hybrid</option>
-</select>
+      .controls {
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
 
+  <body>
+    <h2>Vibe Design Challenge Generator</h2>
 
+    <div class="controls">
+      <button id="generate">Generate challenge</button>
 
-<button id="share">Share this challenge</button>
+      <select id="mode">
+        <option value="free">Free mode</option>
+        <option value="strict">Strict mode</option>
+        <option value="type">Typography only</option>
+      </select>
 
-<button id="download">Download brief image</button>
+      <select id="context">
+        <option value="poster">Poster design</option>
+        <option value="brand">Brand identity</option>
+        <option value="social">Social media creative</option>
+        <option value="motion">Motion / reel cover</option>
+      </select>
 
+      <label>
+        <input type="checkbox" id="dailyMode" />
+        Daily challenge
+      </label>
+    </div>
 
-<div class="section">
-  <h3>Color palette</h3>
-  <div id="palette" class="palette"></div>
-</div>
+    <div class="controls">
+      <button id="share">Share challenge</button>
+      <button id="download">Download brief image</button>
+    </div>
 
-<div class="section">
-  <h3>Trend inspiration</h3>
-  <div id="trend">—</div>
-</div>
+    <!-- ===== SECTION: OUTPUT ===== -->
 
-<div class="section">
-  <h3>Fonts</h3>
-  <div id="fonts">—</div>
-</div>
+    <div class="section">
+      <h3>Color palette</h3>
+      <div id="palette" class="palette"></div>
+    </div>
 
-<div class="section">
-  <h3>Design challenge</h3>
-  <pre id="challenge" style="white-space:pre-wrap;">—</pre>
-</div>
+    <div class="section">
+      <h3>Idea inspiration</h3>
+      <div id="trend">—</div>
+    </div>
 
-<script src="app.js"></script>
-</body>
+    <div class="section">
+      <h3>Fonts</h3>
+      <div id="fonts">—</div>
+    </div>
+
+    <div class="section">
+      <h3>Design challenge</h3>
+      <div id="challenge">—</div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
 </html>
