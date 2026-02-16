@@ -105,6 +105,59 @@ async function fetchMemeTrend() {
   return data.title;
 }
 
+// ---------- WIKIPEDIA IDEA ENGINE ----------
+
+async function fetchWikiIdea() {
+  const res = await fetch(
+    "https://en.wikipedia.org/api/rest_v1/page/random/summary"
+  );
+  const data = await res.json();
+  return data.extract;
+}
+
+function transformWikiToDesignIdea(text) {
+
+  const lenses = [
+    "Design a visual metaphor for",
+    "Create an abstract poster inspired by",
+    "Translate this concept into a brand visual:",
+    "Express this idea using only shapes and color:",
+    "Turn this concept into a modern design system:"
+  ];
+
+  const lens = lenses[random(0, lenses.length - 1)];
+
+  // take only the first meaningful sentence
+  const short = text.split(".")[0];
+
+  return `${lens} "${short}"`;
+}
+
+async function getIdeaBySource(source) {
+  if (source === "wiki") {
+    const raw = await fetchWikiIdea();
+    return transformWikiToDesignIdea(raw);
+  }
+
+  if (source === "meme") {
+    const res = await fetch("https://meme-api.com/gimme/wholesomememes");
+    const data = await res.json();
+    return `Design inspired by this moment: "${data.title}"`;
+  }
+
+  // hybrid
+  if (Math.random() < 0.5) {
+    const raw = await fetchWikiIdea();
+    return transformWikiToDesignIdea(raw);
+  } else {
+    const res = await fetch("https://meme-api.com/gimme/wholesomememes");
+    const data = await res.json();
+    return `Design inspired by this moment: "${data.title}"`;
+  }
+}
+
+
+
 /* ---------------- main ---------------- */
 
 btn.addEventListener("click", async () => {
@@ -126,14 +179,16 @@ btn.addEventListener("click", async () => {
     paletteEl.innerHTML = "No colors. Focus on typography only.";
   }
 
-  let trend = "A creative concept";
+  const ideaSource = document.getElementById("ideaSource").value;
 
+let trend = "A creative concept";
 try {
-  const raw = await fetchWikiIdea();
-  trend = transformToDesignIdea(raw);
+  trend = await getIdeaBySource(ideaSource);
 } catch (e) {
-  console.error(e);
+  console.error("Idea source failed:", e);
 }
+
+
 
 
   document.getElementById("trend").innerText = trend;
