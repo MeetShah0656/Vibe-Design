@@ -1,7 +1,5 @@
 /* =====================================================
-   VIBE DESIGN — RETRO ARCADE THEME
-   Author: You
-   Purpose: Pixel / Retro / Arcade UI
+   VIBE DESIGN — PREMIUM CYBER-RETRO THEME
 ===================================================== */
 
 /* ---------------- RESET / BASE ---------------- */
@@ -16,218 +14,315 @@ html, body {
 
 body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background:
-    radial-gradient(circle at top, #1a1a1a 0%, #090909 60%),
-    repeating-linear-gradient(
-      to bottom,
-      rgba(255,255,255,0.02),
-      rgba(255,255,255,0.02) 1px,
-      transparent 1px,
-      transparent 3px
-    );
   color: #ffffff;
   min-height: 100vh;
-  padding: 32px 20px;
+  padding: 40px 20px;
+
+  /* The Moving Gradient Magic */
+  background: linear-gradient(
+    -45deg,
+    #0d0e15,
+    #2a0a18,
+    #0a1128,
+    #1c110a
+  );
+  background-size: 400% 400%;
+  animation: smoothGradient 15s ease infinite;
+}
+
+@keyframes smoothGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* ---------------- TYPOGRAPHY ---------------- */
 
 .title {
   font-family: "Pixelify Sans", monospace;
-  font-size: 44px;
+  font-size: 48px;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin: 0 0 6px 0;
-  color: #ffb703;
-
-  text-shadow:
-    2px 2px 0 #fb5607,
-    4px 4px 0 #9b2226,
-    6px 6px 0 rgba(0,0,0,0.7);
-
-  animation: crtFlicker 4s infinite;
-  transition: transform 0.25s ease, text-shadow 0.25s ease;
+  letter-spacing: 0.1em;
+  margin: 0 0 8px 0;
+  
+  /* Modern premium gradient text */
+  background: linear-gradient(to right, #ffb703, #fb5607);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  /* Subtle glow instead of harsh drop shadows */
+  filter: drop-shadow(0px 4px 12px rgba(251, 86, 7, 0.4));
+  transition: transform 0.3s ease, filter 0.3s ease;
 }
 
 .title:hover {
-  transform: translateY(-4px) scale(1.03);
-  text-shadow:
-    2px 2px 0 #ffd166,
-    4px 4px 0 #ef476f,
-    6px 6px 14px rgba(255,183,3,0.9);
+  transform: translateY(-2px);
+  filter: drop-shadow(0px 6px 20px rgba(255, 183, 3, 0.6));
 }
 
 .subtitle {
-  font-size: 14px;
-  opacity: 0.65;
-  margin-bottom: 22px;
+  font-size: 15px;
+  opacity: 0.7;
+  margin-bottom: 28px;
+  letter-spacing: 0.05em;
 }
 
-/* ---------------- CONTROL CARD ---------------- */
+/* ---------------- GLASSMORPHISM CARDS ---------------- */
 
 .control-card {
-  background: linear-gradient(180deg, #1e1e1e, #121212);
+  /* Frosted Glass Effect */
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
-  padding: 16px;
+  padding: 20px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 28px;
+  gap: 12px;
+  margin-bottom: 32px;
 
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.05),
-    0 24px 40px rgba(0,0,0,0.7);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
 /* ---------------- BUTTONS ---------------- */
 
 button {
   font-family: "Pixelify Sans", monospace;
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 
-  background: #ffffff;
+  background: #ffb703;
   color: #111111;
   border: none;
-  padding: 10px 14px;
+  padding: 12px 20px;
   cursor: pointer;
+  border-radius: 8px;
+  font-weight: bold;
 
-  border-radius: 6px;
-
-  box-shadow:
-    0 0 0 2px #000000,
-    4px 4px 0 #333333;
-
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    background 0.15s ease;
+  box-shadow: 0 4px 12px rgba(255, 183, 3, 0.2);
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 button:hover {
-  transform: translate(-2px, -2px);
-  box-shadow:
-    0 0 0 2px #000000,
-    6px 6px 0 #ffb703;
+  background: #ffc333;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(255, 183, 3, 0.4);
 }
 
 button:active {
-  transform: translate(0, 0);
-  box-shadow:
-    0 0 0 2px #000000,
-    2px 2px 0 #333333;
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 183, 3, 0.3);
 }
 
 button.secondary {
-  background: #1e1e1e;
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: none;
 }
 
-/* ---------------- SELECTS & CHECKBOX ---------------- */
+button.secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ---------------- INPUTS & TOGGLES ---------------- */
 
 select {
-  background: #111111;
+  background: rgba(0, 0, 0, 0.4);
   color: #ffffff;
-  border-radius: 6px;
-  padding: 8px 10px;
-  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+select:hover, select:focus {
+  border-color: #ffb703;
 }
 
 label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  opacity: 0.85;
+  gap: 8px;
+  font-size: 14px;
+  opacity: 0.9;
+  cursor: pointer;
+  user-select: none;
+}
+
+input[type="checkbox"] {
+  accent-color: #fb5607;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
 /* ---------------- SECTIONS ---------------- */
 
 .section {
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
 
 .section h3 {
   font-family: "Pixelify Sans", monospace;
-  font-size: 12px;
-  letter-spacing: 0.18em;
+  font-size: 13px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  opacity: 0.6;
-  margin-bottom: 10px;
+  color: #fb5607;
+  margin-bottom: 14px;
 }
 
 /* ---------------- PALETTE ---------------- */
 
 .palette {
   display: flex;
-  gap: 12px;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .color {
-  width: 72px;
-  height: 72px;
-  border-radius: 10px;
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  font-size: 11px;
-  padding-bottom: 6px;
+  font-size: 12px;
+  font-family: "Pixelify Sans", monospace;
+  padding-bottom: 8px;
   cursor: pointer;
-
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.15),
-    0 10px 24px rgba(0,0,0,0.6);
-
-  transition: transform 0.15s ease;
+  
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .color:hover {
-  transform: translateY(-6px) scale(1.06);
+  transform: translateY(-8px) scale(1.05);
+  border-color: #ffffff;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
 }
 
 /* ---------------- TEXT BLOCKS ---------------- */
 
 #trend,
 #fonts {
-  font-size: 14px;
+  font-size: 15px;
   opacity: 0.9;
+  line-height: 1.5;
+}
+
+#fonts a {
+  color: #ffb703;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 183, 3, 0.3);
+  transition: all 0.2s ease;
+}
+
+#fonts a:hover {
+  border-bottom-color: #ffb703;
+  text-shadow: 0 0 8px rgba(255, 183, 3, 0.4);
 }
 
 #challenge {
-  background: linear-gradient(180deg, #1b1b1b, #101010);
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
-  padding: 20px;
-  font-size: 15px;
-  line-height: 1.65;
+  padding: 24px;
+  font-size: 16px;
+  line-height: 1.7;
   white-space: pre-wrap;
+  color: #e2e8f0;
 
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.05),
-    0 14px 30px rgba(0,0,0,0.6);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* ---------------- HISTORY ---------------- */
 
+#history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 #history div {
-  font-size: 13px;
-  opacity: 0.8;
+  font-size: 12px;
+  font-family: monospace;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
   cursor: pointer;
-  margin-bottom: 6px;
+  transition: all 0.2s ease;
 }
 
 #history div:hover {
-  opacity: 1;
-  text-decoration: underline;
+  background: rgba(255, 183, 3, 0.15);
+  border-color: rgba(255, 183, 3, 0.4);
+  color: #ffb703;
+  transform: translateY(-2px);
 }
 
-/* ---------------- CRT EFFECT ---------------- */
 
-@keyframes crtFlicker {
-  0%   { opacity: 1; }
-  96%  { opacity: 1; }
-  97%  { opacity: 0.9; }
-  98%  { opacity: 1; }
-  99%  { opacity: 0.85; }
-  100% { opacity: 1; }
+/* =====================================================
+   SECTION: MOBILE RESPONSIVENESS
+===================================================== */
+
+@media (max-width: 600px) {
+  body {
+    padding: 24px 16px;
+  }
+
+  .title {
+    font-size: 34px; /* Scales down the title so it fits the screen */
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  /* Make controls stack and fill the screen for easy tapping */
+  .control-card {
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .control-card select,
+  .control-card button,
+  .control-card label {
+    width: 100%; 
+    font-size: 16px; /* Larger font size prevents iOS from auto-zooming */
+  }
+
+  /* Adjust the palette to fit perfectly in one row */
+  .palette {
+    gap: 8px;
+    justify-content: space-between;
+  }
+
+  .color {
+    /* Calculates 25% of the width minus the gap so 4 boxes always fit */
+    width: calc(25% - 6px); 
+    height: 70px;
+    font-size: 10px;
+  }
+
+  #challenge {
+    font-size: 14px;
+    padding: 16px;
+  }
 }

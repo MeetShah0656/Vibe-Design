@@ -380,6 +380,37 @@ shareBtn.addEventListener("click", async () => {
 });
 
 /* =====================================================
+   SECTION: COPY BRIEF TO CLIPBOARD
+===================================================== */
+const copyBriefBtn = document.getElementById("copyBrief");
+
+copyBriefBtn.addEventListener("click", async () => {
+  if (!lastChallengeText) {
+    alert("Generate a challenge first.");
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(lastChallengeText);
+    
+    // Satisfying UX Feedback
+    const originalText = copyBriefBtn.innerText;
+    copyBriefBtn.innerText = "COPIED!";
+    copyBriefBtn.style.background = "#fb5607"; // Flash to orange
+    copyBriefBtn.style.color = "#ffffff";
+    
+    // Reset after 2 seconds
+    setTimeout(() => {
+      copyBriefBtn.innerText = originalText;
+      copyBriefBtn.style.background = "rgba(255, 255, 255, 0.1)"; // Back to glassmorphism
+    }, 2000);
+    
+  } catch (err) {
+    alert("Failed to copy text. Your browser might not support this.");
+  }
+});
+
+/* =====================================================
    SECTION: DOWNLOAD IMAGE (FIXED ALIGNMENT)
 ===================================================== */
 
