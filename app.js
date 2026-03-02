@@ -165,15 +165,9 @@ async function fetchWikiIdea() {
 }
 
 function transformWikiToDesignIdea(text) {
-  const lenses = [
-    "Design a visual metaphor for",
-    "Create an abstract poster inspired by",
-    "Translate this concept into a brand visual:",
-    "Express this idea using only shapes and color:",
-    "Turn this concept into a modern design system:",
-  ];
-  const lens = lenses[random(0, lenses.length - 1)];
-  return `${lens} "${text.split(".")[0]}"`;
+  // Grab the first sentence of the Wiki article and clean it up
+  let sentences = text.split(".");
+  return sentences[0].trim() + ".";
 }
 
 async function getDailyIdea() {
@@ -302,18 +296,47 @@ btn.addEventListener("click", async () => {
       : `<strong>Headline:</strong> <a href="${fonts.headline.url}" target="_blank">${fonts.headline.name}</a><br>
          <strong>Body:</strong> <a href="${fonts.body.url}" target="_blank">${fonts.body.name}</a>`;
 
+  // ----- CONTEXT LINE -----
   let contextLine = "Design a visual artwork";
   if (context === "brand") contextLine = "Design a brand identity visual";
   if (context === "social") contextLine = "Design a social media creative";
-  if (context === "motion")
-    contextLine = "Design a motion / reel cover concept";
+  if (context === "motion") contextLine = "Design a motion / reel cover concept";
 
-  lastChallengeText = `${contextLine} in a ${["playful", "bold", "minimal", "emotional", "futuristic", "editorial"][random(0, 5)]} style inspired by:
+  // ----- CRAZY STYLES & WILDCARDS -----
+  const styles = [
+    "Acid Graphics", 
+    "Neo-Brutalism", 
+    "Swiss International", 
+    "Cyberpunk / Y2K", 
+    "Maximalist Retro", 
+    "High-Contrast Editorial",
+    "Surreal Abstract",
+    "Lo-Fi Arcade"
+  ];
+  const style = styles[random(0, styles.length - 1)];
 
-"${trend}"
+  const wildcards = [
+    "Constraint: You must use a visible, distorted grid.",
+    "Constraint: Incorporate heavy film grain, noise, or halftone patterns.",
+    "Constraint: Typography must be the absolute largest element.",
+    "Constraint: Break the borders—elements must bleed off the edge.",
+    "Constraint: Overlap elements to create a sense of chaos.",
+    "Constraint: Make it look like a vintage scanned receipt or ticket.",
+    "Constraint: Use only geometric shapes (circles, squares, triangles) to build the composition."
+  ];
+  const wildcard = wildcards[random(0, wildcards.length - 1)];
 
-Do NOT use the sentence literally.
-Translate the emotion into layout, color and typography.`;
+  
+  // ----- FINAL CHALLENGE TEXT -----
+  let wildcardLine = mode === "free" ? `\n${wildcard}` : "";
+
+  lastChallengeText = `MISSION: ${contextLine.toUpperCase()}
+
+INSPIRATION FACT: "${trend}"
+
+VIBE: ${style}${wildcardLine}
+
+RULE: Do NOT illustrate the text literally. Extract its mood, energy, or structure, and translate that into pure layout, color, and typography.`;
 
   document.getElementById("challenge").innerText = lastChallengeText;
 
@@ -357,58 +380,138 @@ shareBtn.addEventListener("click", async () => {
 });
 
 /* =====================================================
-   SECTION: DOWNLOAD IMAGE
+   SECTION: DOWNLOAD IMAGE (FIXED ALIGNMENT)
 ===================================================== */
 
 downloadBtn.addEventListener("click", () => {
   if (!lastChallengeText) return alert("Generate first.");
 
+  // 1. Setup Canvas & Dimensions
   const c = document.createElement("canvas");
   const ctx = c.getContext("2d");
   c.width = 1080;
   c.height = 1350;
 
-  ctx.fillStyle = "#111";
-  ctx.fillRect(0, 0, 1080, 1350);
-  ctx.fillStyle = "#fff";
+  const centerX = c.width / 2;
+  const marginX = 120; // Distance from edge
+  const maxWidth = c.width - (marginX * 2); // Max width for text blocks
+
+  // 2. Draw Background & Retro Borders
+  ctx.fillStyle = "#1a1a1a";
+  ctx.fillRect(0, 0, c.width, c.height);
+
+  ctx.strokeStyle = "#ffb703"; // Outer yellow
+  ctx.lineWidth = 12;
+  ctx.strokeRect(40, 40, c.width - 80, c.height - 80);
   
-  // Updated to use the Pixelify Sans font
-  ctx.font = 'bold 48px "Pixelify Sans", sans-serif';
-  ctx.fillText("Vibe Design Challenge", 60, 80);
+  ctx.strokeStyle = "#fb5607"; // Inner orange
+  ctx.lineWidth = 4;
+  ctx.strokeRect(60, 60, c.width - 120, c.height - 120);
 
-  let x = 60;
-  lastPalette.forEach((col) => {
-    ctx.fillStyle = col;
-    ctx.fillRect(x, 110, 60, 60);
-    x += 76;
+  // --- IMPORTANT: Wait for fonts to load ---
+  document.fonts.ready.then(() => {
+    // Set global alignment to center
+    ctx.textAlign = "center";
+
+    // 3. Draw Title Block
+    let currentY = 180;
+    
+    ctx.fillStyle = "#ffb703";
+    ctx.font = 'bold 64px "Pixelify Sans", monospace';
+    ctx.fillText("VIBE DESIGN CHALLENGE", centerX, currentY);
+
+    currentY += 60;
+    ctx.fillStyle = "#ffffff";
+    ctx.font = '32px "Pixelify Sans", monospace';
+    const isDaily = document.getElementById("dailyMode").checked;
+    const subtitle = isDaily ? `DAILY TICKET · ${formatTodayLabel()}` : "FREE PLAY MODE";
+    ctx.fillText(subtitle, centerX, currentY);
+
+    currentY += 50;
+    ctx.fillStyle = "#333333";
+    ctx.fillRect(centerX - 150, currentY, 300, 4); // Centered separator line
+
+    // 4. Draw Color Palette Section
+    currentY += 100;
+    ctx.fillStyle = "#fb5607";
+    ctx.font = 'bold 36px "Pixelify Sans", monospace';
+    ctx.fillText("COLOR PALETTE", centerX, currentY);
+
+    currentY += 50;
+    if (lastPalette.length === 0) {
+        ctx.fillStyle = "#888888";
+        ctx.font = 'italic 32px sans-serif';
+        ctx.fillText("No colors. Typography only.", centerX, currentY + 30);
+        currentY += 100; // Add space even if no colors
+    } else {
+        // Calculate centering for color boxes
+        const boxSize = 120;
+        const gap = 40;
+        const totalPaletteWidth = (lastPalette.length * boxSize) + ((lastPalette.length - 1) * gap);
+        let startX = centerX - (totalPaletteWidth / 2) + (boxSize / 2);
+
+        lastPalette.forEach((col, index) => {
+          let xPos = startX + (index * (boxSize + gap));
+          
+          // Draw box (centered on its xPos)
+          ctx.fillStyle = col;
+          // fillRect draws from top-left, so adjust xPos back by half boxSize
+          ctx.fillRect(xPos - (boxSize/2), currentY, boxSize, boxSize);
+          
+          // Draw border
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 4;
+          ctx.strokeRect(xPos - (boxSize/2), currentY, boxSize, boxSize);
+          
+          // Draw Hex text underneath
+          ctx.fillStyle = "#ffffff";
+          ctx.font = '24px "Pixelify Sans", monospace';
+          ctx.fillText(col.toUpperCase(), xPos, currentY + boxSize + 35);
+        });
+        currentY += boxSize + 80; // Advance Y past the color boxes
+    }
+
+    // 5. Draw Challenge Brief
+    currentY += 40; 
+    ctx.fillStyle = "#fb5607";
+    ctx.font = 'bold 32px "Pixelify Sans", monospace'; 
+    ctx.fillText("YOUR MISSION", centerX, currentY);
+    
+    // Switch font for body text (Reduced to 28px for better fit)
+    ctx.fillStyle = "#dddddd";
+    ctx.font = '28px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'; 
+    
+    currentY += 45; 
+    
+    lastChallengeText.split("\n").forEach((paragraph) => {
+      if (paragraph.trim() === "") {
+        // Reduced gap for empty lines
+        currentY += 10; 
+      } else {
+        // Wraptext now uses a tighter 38px line height
+        currentY = wrapText(ctx, paragraph, centerX, currentY, maxWidth, 38);
+      }
+    });
+    
+    // 6. Draw Footer
+    ctx.fillStyle = "#666666";
+    ctx.font = '28px "Pixelify Sans", monospace';
+    // Position from bottom
+    ctx.fillText("vibe-design.app", centerX, c.height - 60);
+
+    // 7. Trigger Download
+    const a = document.createElement("a");
+    a.download = `vibe-challenge-${Date.now()}.png`;
+    a.href = c.toDataURL();
+    a.click();
   });
-
-  ctx.font = "28px sans-serif";
-  let y = 220;
-  lastChallengeText.split("\n").forEach((l) => {
-    y = wrapText(ctx, l, 60, y, 960, 36) + 20;
-  });
-
-  const a = document.createElement("a");
-  a.download = "vibe-challenge.png";
-  a.href = c.toDataURL();
-  a.click();
 });
 
-function wrapText(ctx, text, x, y, max, line) {
-  let words = text.split(" "),
-    l = "";
-  for (let w of words) {
-    let t = l + w + " ";
-    if (ctx.measureText(t).width > max) {
-      ctx.fillText(l, x, y);
-      l = w + " ";
-      y += line;
-    } else l = t;
-  }
-  ctx.fillText(l, x, y);
-  return y;
-}
+/**
+ * HELPER: Handles text wrapping for Canvas
+ * Note: When ctx.textAlign is 'center', the 'x' parameter is the center point.
+ */
+
 
 /* =====================================================
    SECTION: AUTO-GENERATE ON LOAD
@@ -425,3 +528,33 @@ window.addEventListener("load", () => {
     renderHistory(); // Always render history on load so past dates show up
   }
 });
+
+
+/**
+ * HELPER: Handles text wrapping for Canvas
+ */
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  let words = text.split(" ");
+  let line = "";
+  let testY = y;
+
+  for (let n = 0; n < words.length; n++) {
+    let testLine = line + words[n] + " ";
+    let metrics = ctx.measureText(testLine);
+    let testWidth = metrics.width;
+
+    if (testWidth > maxWidth && n > 0) {
+      ctx.fillText(line.trim(), x, testY); // .trim() keeps centering perfect
+      line = words[n] + " ";
+      testY += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  
+  // Draw the final line of the paragraph
+  ctx.fillText(line.trim(), x, testY);
+  
+  // THE FIX: Add lineHeight before returning so the next paragraph doesn't overlap
+  return testY + lineHeight; 
+}
