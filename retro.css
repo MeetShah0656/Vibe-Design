@@ -1,0 +1,233 @@
+/* =====================================================
+   VIBE DESIGN — RETRO ARCADE THEME
+   Author: You
+   Purpose: Pixel / Retro / Arcade UI
+===================================================== */
+
+/* ---------------- RESET / BASE ---------------- */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background:
+    radial-gradient(circle at top, #1a1a1a 0%, #090909 60%),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.02),
+      rgba(255,255,255,0.02) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  color: #ffffff;
+  min-height: 100vh;
+  padding: 32px 20px;
+}
+
+/* ---------------- TYPOGRAPHY ---------------- */
+
+.title {
+  font-family: "Pixelify Sans", monospace;
+  font-size: 44px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin: 0 0 6px 0;
+  color: #ffb703;
+
+  text-shadow:
+    2px 2px 0 #fb5607,
+    4px 4px 0 #9b2226,
+    6px 6px 0 rgba(0,0,0,0.7);
+
+  animation: crtFlicker 4s infinite;
+  transition: transform 0.25s ease, text-shadow 0.25s ease;
+}
+
+.title:hover {
+  transform: translateY(-4px) scale(1.03);
+  text-shadow:
+    2px 2px 0 #ffd166,
+    4px 4px 0 #ef476f,
+    6px 6px 14px rgba(255,183,3,0.9);
+}
+
+.subtitle {
+  font-size: 14px;
+  opacity: 0.65;
+  margin-bottom: 22px;
+}
+
+/* ---------------- CONTROL CARD ---------------- */
+
+.control-card {
+  background: linear-gradient(180deg, #1e1e1e, #121212);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 28px;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.05),
+    0 24px 40px rgba(0,0,0,0.7);
+}
+
+/* ---------------- BUTTONS ---------------- */
+
+button {
+  font-family: "Pixelify Sans", monospace;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  background: #ffffff;
+  color: #111111;
+  border: none;
+  padding: 10px 14px;
+  cursor: pointer;
+
+  border-radius: 6px;
+
+  box-shadow:
+    0 0 0 2px #000000,
+    4px 4px 0 #333333;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow:
+    0 0 0 2px #000000,
+    6px 6px 0 #ffb703;
+}
+
+button:active {
+  transform: translate(0, 0);
+  box-shadow:
+    0 0 0 2px #000000,
+    2px 2px 0 #333333;
+}
+
+button.secondary {
+  background: #1e1e1e;
+  color: #ffffff;
+}
+
+/* ---------------- SELECTS & CHECKBOX ---------------- */
+
+select {
+  background: #111111;
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* ---------------- SECTIONS ---------------- */
+
+.section {
+  margin-bottom: 28px;
+}
+
+.section h3 {
+  font-family: "Pixelify Sans", monospace;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 10px;
+}
+
+/* ---------------- PALETTE ---------------- */
+
+.palette {
+  display: flex;
+  gap: 12px;
+}
+
+.color {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  font-size: 11px;
+  padding-bottom: 6px;
+  cursor: pointer;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.15),
+    0 10px 24px rgba(0,0,0,0.6);
+
+  transition: transform 0.15s ease;
+}
+
+.color:hover {
+  transform: translateY(-6px) scale(1.06);
+}
+
+/* ---------------- TEXT BLOCKS ---------------- */
+
+#trend,
+#fonts {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+#challenge {
+  background: linear-gradient(180deg, #1b1b1b, #101010);
+  border-radius: 16px;
+  padding: 20px;
+  font-size: 15px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.05),
+    0 14px 30px rgba(0,0,0,0.6);
+}
+
+/* ---------------- HISTORY ---------------- */
+
+#history div {
+  font-size: 13px;
+  opacity: 0.8;
+  cursor: pointer;
+  margin-bottom: 6px;
+}
+
+#history div:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* ---------------- CRT EFFECT ---------------- */
+
+@keyframes crtFlicker {
+  0%   { opacity: 1; }
+  96%  { opacity: 1; }
+  97%  { opacity: 0.9; }
+  98%  { opacity: 1; }
+  99%  { opacity: 0.85; }
+  100% { opacity: 1; }
+}

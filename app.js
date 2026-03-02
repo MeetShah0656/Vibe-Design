@@ -18,12 +18,9 @@ let dailyRand = null;
 let forceDailyFromURL = false;
 let isDaily = false;
 
-
 /* =====================================================
    SECTION: RANDOM HELPERS (DAILY MODE AWARE)
 ===================================================== */
-
-// ===== SECTION: URL & DATE HELPERS =====
 
 function shouldAutoGenerate() {
   const params = new URLSearchParams(window.location.search);
@@ -158,62 +155,6 @@ function pickFonts() {
 /* =====================================================
    SECTION: IDEA ENGINE (WIKIPEDIA)
 ===================================================== */
-// ===== SECTION: HISTORY HELPERS =====
-function saveToHistory(dateKey, payload) {
-  const all = JSON.parse(localStorage.getItem("history")) || {};
-  all[dateKey] = payload;
-  localStorage.setItem("history", JSON.stringify(all));
-}
-
-function getHistory() {
-  return JSON.parse(localStorage.getItem("history")) || {};
-}
-
-function renderHistory() {
-  const el = document.getElementById("history");
-  const all = getHistory();
-  const dates = Object.keys(all).sort().reverse().slice(0, 7);
-
-  if (!dates.length) {
-    el.textContent = "No history yet.";
-    return;
-  }
-
-  el.innerHTML = dates
-    .map(
-      (d) =>
-        `<div style="cursor:pointer;opacity:.9" data-date="${d}">
-      ${d}
-     </div>`,
-    )
-    .join("");
-
-  dates.forEach((d) => {
-    el.querySelector(`[data-date="${d}"]`).onclick = () => {
-      loadFromHistory(d);
-    };
-  });
-}
-
-function loadFromHistory(dateKey) {
-  const item = getHistory()[dateKey];
-  if (!item) return;
-
-  lastChallengeText = item.challenge;
-  lastPalette = item.palette;
-
-  // rehydrate UI
-  document.getElementById("trend").innerText = item.trend;
-  document.getElementById("fonts").innerHTML = item.fontsHTML;
-  document.getElementById("challenge").innerText = item.challenge;
-
-  if (item.palette.length) {
-    renderPalette(item.palette);
-  } else {
-    document.getElementById("palette").innerHTML =
-      "No colors. Typography only.";
-  }
-}
 
 async function fetchWikiIdea() {
   const res = await fetch(
@@ -235,28 +176,26 @@ function transformWikiToDesignIdea(text) {
   return `${lens} "${text.split(".")[0]}"`;
 }
 
-// ===== DAILY IDEA CACHE =====
 async function getDailyIdea() {
-  const today = getTodaySeed(); // YYYY-MM-DD
+  const today = getTodaySeed();
   const key = `dailyIdea-${today}`;
 
-  // 1. If already generated today → reuse
   const cached = localStorage.getItem(key);
   if (cached) {
     return cached;
   }
 
-  // 2. Otherwise fetch once
   const raw = await fetchWikiIdea();
   const idea = transformWikiToDesignIdea(raw);
 
-  // 3. Store for the day
   localStorage.setItem(key, idea);
-
   return idea;
 }
 
-// ===== SECTION: HISTORY HELPERS =====
+/* =====================================================
+   SECTION: HISTORY HELPERS
+===================================================== */
+
 function saveToHistory(dateKey, payload) {
   const all = JSON.parse(localStorage.getItem("history")) || {};
   all[dateKey] = payload;
@@ -269,6 +208,8 @@ function getHistory() {
 
 function renderHistory() {
   const el = document.getElementById("history");
+  if (!el) return; // Guard clause in case HTML is missing
+  
   const all = getHistory();
   const dates = Object.keys(all).sort().reverse().slice(0, 7);
 
@@ -300,7 +241,6 @@ function loadFromHistory(dateKey) {
   lastChallengeText = item.challenge;
   lastPalette = item.palette;
 
-  // rehydrate UI
   document.getElementById("trend").innerText = item.trend;
   document.getElementById("fonts").innerHTML = item.fontsHTML;
   document.getElementById("challenge").innerText = item.challenge;
@@ -318,7 +258,6 @@ function loadFromHistory(dateKey) {
 ===================================================== */
 
 btn.addEventListener("click", async () => {
-  // ----- DAILY MODE (URL + CHECKBOX SYNC) -----
   forceDailyFromURL = isDailyFromURL();
 
   const dailyCheckbox = document.getElementById("dailyMode");
@@ -326,21 +265,18 @@ btn.addEventListener("click", async () => {
     dailyCheckbox.checked = true;
   }
 
-  // ----- DAILY MODE SETUP -----
   isDaily = dailyCheckbox.checked;
   dailyRand = isDaily ? seededRandom(getTodaySeed()) : null;
 
   const mode = document.getElementById("mode").value;
   const context = document.getElementById("context").value;
 
-  // ----- DAILY HEADER -----
   if (isDaily) {
     dailyHeaderEl.textContent = `Today’s Challenge · ${formatTodayLabel()}`;
   } else {
     dailyHeaderEl.textContent = "";
   }
 
-  // ----- PALETTE -----
   let palette = generatePalette();
   if (mode === "strict") palette = palette.slice(0, 2);
   if (mode === "type") palette = [];
@@ -350,19 +286,15 @@ btn.addEventListener("click", async () => {
     ? renderPalette(palette)
     : (paletteEl.innerHTML = "No colors. Typography only.");
 
-  // ----- IDEA -----
   let trend = "";
-
   if (isDaily) {
     trend = await getDailyIdea();
   } else {
     const rawIdea = await fetchWikiIdea();
     trend = transformWikiToDesignIdea(rawIdea);
   }
-
   document.getElementById("trend").innerText = trend;
 
-  // ----- FONTS -----
   const fonts = pickFonts();
   document.getElementById("fonts").innerHTML =
     mode === "strict"
@@ -370,14 +302,12 @@ btn.addEventListener("click", async () => {
       : `<strong>Headline:</strong> <a href="${fonts.headline.url}" target="_blank">${fonts.headline.name}</a><br>
          <strong>Body:</strong> <a href="${fonts.body.url}" target="_blank">${fonts.body.name}</a>`;
 
-  // ----- CONTEXT LINE -----
   let contextLine = "Design a visual artwork";
   if (context === "brand") contextLine = "Design a brand identity visual";
   if (context === "social") contextLine = "Design a social media creative";
   if (context === "motion")
     contextLine = "Design a motion / reel cover concept";
 
-  // ----- CHALLENGE TEXT -----
   lastChallengeText = `${contextLine} in a ${["playful", "bold", "minimal", "emotional", "futuristic", "editorial"][random(0, 5)]} style inspired by:
 
 "${trend}"
@@ -386,83 +316,19 @@ Do NOT use the sentence literally.
 Translate the emotion into layout, color and typography.`;
 
   document.getElementById("challenge").innerText = lastChallengeText;
+
+  // ----- SAVE DAILY HISTORY (Moved inside event listener) -----
+  if (document.getElementById("dailyMode").checked) {
+    const dateKey = getTodaySeed();
+    saveToHistory(dateKey, {
+      trend,
+      palette: lastPalette,
+      fontsHTML: document.getElementById("fonts").innerHTML,
+      challenge: lastChallengeText
+    });
+    renderHistory();
+  }
 });
-
-// ----- SAVE DAILY HISTORY -----
-if (isDaily) {
-  console.log("Saving daily history");
-
-  const dateKey = getTodaySeed();
-  saveToHistory(dateKey, {
-    trend,
-    palette: lastPalette,
-    fontsHTML: document.getElementById("fonts").innerHTML,
-    challenge: lastChallengeText
-  });
-  renderHistory();
-} else {
-  console.log("NOT daily mode, history skipped");
-}
-
-
-
-
-// ===== SECTION: HISTORY HELPERS =====
-function saveToHistory(dateKey, payload) {
-  const all = JSON.parse(localStorage.getItem("history")) || {};
-  all[dateKey] = payload;
-  localStorage.setItem("history", JSON.stringify(all));
-}
-
-function getHistory() {
-  return JSON.parse(localStorage.getItem("history")) || {};
-}
-
-function renderHistory() {
-  const el = document.getElementById("history");
-  const all = getHistory();
-  const dates = Object.keys(all).sort().reverse().slice(0, 7);
-
-  if (!dates.length) {
-    el.textContent = "No history yet.";
-    return;
-  }
-
-  el.innerHTML = dates
-    .map(
-      (d) =>
-        `<div style="cursor:pointer;opacity:.9" data-date="${d}">
-      ${d}
-     </div>`,
-    )
-    .join("");
-
-  dates.forEach((d) => {
-    el.querySelector(`[data-date="${d}"]`).onclick = () => {
-      loadFromHistory(d);
-    };
-  });
-}
-
-function loadFromHistory(dateKey) {
-  const item = getHistory()[dateKey];
-  if (!item) return;
-
-  lastChallengeText = item.challenge;
-  lastPalette = item.palette;
-
-  // rehydrate UI
-  document.getElementById("trend").innerText = item.trend;
-  document.getElementById("fonts").innerHTML = item.fontsHTML;
-  document.getElementById("challenge").innerText = item.challenge;
-
-  if (item.palette.length) {
-    renderPalette(item.palette);
-  } else {
-    document.getElementById("palette").innerHTML =
-      "No colors. Typography only.";
-  }
-}
 
 /* =====================================================
    SECTION: SHARE CHALLENGE
@@ -480,12 +346,7 @@ shareBtn.addEventListener("click", async () => {
     ? "https://meetshah0656.github.io/Vibe-Design/?daily=1"
     : "https://meetshah0656.github.io/Vibe-Design/";
 
-  const shareText = `🎨 Vibe Design Challenge
-
-${lastChallengeText}
-
-Try it here:
-${shareURL}`;
+  const shareText = `🎨 Vibe Design Challenge\n\n${lastChallengeText}\n\nTry it here:\n${shareURL}`;
 
   if (navigator.share) {
     await navigator.share({ text: shareText });
@@ -510,7 +371,9 @@ downloadBtn.addEventListener("click", () => {
   ctx.fillStyle = "#111";
   ctx.fillRect(0, 0, 1080, 1350);
   ctx.fillStyle = "#fff";
-  ctx.font = "bold 48px sans-serif";
+  
+  // Updated to use the Pixelify Sans font
+  ctx.font = 'bold 48px "Pixelify Sans", sans-serif';
   ctx.fillText("Vibe Design Challenge", 60, 80);
 
   let x = 60;
@@ -553,14 +416,12 @@ function wrapText(ctx, text, x, y, max, line) {
 
 window.addEventListener("load", () => {
   if (shouldAutoGenerate()) {
-    // ensure daily mode is ON
     const dailyCheckbox = document.getElementById("dailyMode");
     if (dailyCheckbox) dailyCheckbox.checked = true;
-
+    
     renderHistory();
-
-
-    // trigger generation
     btn.click();
+  } else {
+    renderHistory(); // Always render history on load so past dates show up
   }
 });

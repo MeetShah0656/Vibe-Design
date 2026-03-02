@@ -2,98 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vibe Design Challenge</title>
-
-    <style>
-      body {
-        font-family:
-          system-ui,
-          -apple-system,
-          BlinkMacSystemFont,
-          sans-serif;
-        background: #111;
-        color: #fff;
-        max-width: 760px;
-        margin: auto;
-        padding: 24px;
-      }
-
-      h2 {
-        margin-bottom: 8px;
-      }
-      h3 {
-        margin: 18px 0 6px;
-      }
-
-      button,
-      select,
-      label {
-        padding: 8px 14px;
-        border-radius: 6px;
-        border: none;
-        margin: 6px 6px 6px 0;
-        cursor: pointer;
-        font-size: 14px;
-      }
-
-      select {
-        background: #1e1e1e;
-        color: #fff;
-      }
-
-      button {
-        background: #fff;
-        color: #111;
-      }
-
-      .palette {
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-      }
-
-      .color {
-        width: 70px;
-        height: 70px;
-        border-radius: 8px;
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
-        font-size: 10px;
-        padding-bottom: 5px;
-        cursor: pointer;
-        color: #fff;
-      }
-
-      .section {
-        margin-top: 20px;
-      }
-
-      #challenge {
-        white-space: pre-wrap;
-        background: #1b1b1b;
-        padding: 14px;
-        border-radius: 8px;
-        font-size: 14px;
-        line-height: 1.5;
-      }
-
-      a {
-        color: #8ab4ff;
-        text-decoration: none;
-      }
-
-      .controls {
-        margin-bottom: 10px;
-      }
-    </style>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="retro.css">
   </head>
 
   <body>
-    <h2>Vibe Design Challenge Generator</h2>
-    <div id="dailyHeader" style="opacity: 0.85; margin-bottom: 8px"></div>
+    <h2 class="title">Vibe Design Challenge Generator</h2>
+    <div id="dailyHeader" class="subtitle"></div>
 
-    <div class="controls">
+    <div class="control-card">
       <button id="generate">Generate challenge</button>
 
       <select id="mode">
@@ -115,12 +37,10 @@
       </label>
     </div>
 
-    <div class="controls">
-      <button id="share">Share challenge</button>
-      <button id="download">Download brief image</button>
+    <div class="control-card">
+      <button id="share" class="secondary">Share challenge</button>
+      <button id="download" class="secondary">Download brief image</button>
     </div>
-
-    <!-- ===== SECTION: OUTPUT ===== -->
 
     <div class="section">
       <h3>Color palette</h3>
